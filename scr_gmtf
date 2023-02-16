@@ -1,8 +1,8 @@
 function gmtf(style_struct=undefined) constructor {
 
 	style = {
-		w: 128, 
-		h: 64, 
+		w: 256, 
+		h: 110, 
 		lh: 24, 
 		text: "", 
 		font: -1, 
@@ -11,7 +11,7 @@ function gmtf(style_struct=undefined) constructor {
 		c_bkg_focused:		{ c: c_ltgray,	a: 1 },
 		c_text_unfocused:	{ c: c_black,	a: 1 },
 		c_text_focused:		{ c: c_black,	a: 1 },
-		c_selection:		{ c: c_red,		a: 0.25 },
+		c_selection:		{ c: c_blue,	a: 0.3 },
 		h_align: 0,
 	}
 	
@@ -37,11 +37,18 @@ function gmtf(style_struct=undefined) constructor {
 	pad_w = style.w - style.padding.right * 2;
 	pad_h = style.h - style.padding.left * 2;
 	
-	cursor1 = { pos: 0, line: l_lines[| 0], cx: 0, cy: 0, lnw: 0, cxs: 0 };
-	cursor2 = { pos: 0, line: l_lines[| 0], cx: 0, cy: 0, lnw: 0, cxs: 0 };
+	cursor1 = { pos: 0, line: l_lines[| 0], cx: 0, cy: 0, cxs: 0 };
+	cursor2 = { pos: 0, line: l_lines[| 0], cx: 0, cy: 0, cxs: 0 };
 	
 	has_focus = true;
-
+	gamespd = 0;
+	cursor_tick = 0;
+	cursor_visible = true;
+	spam_tick = 0;
+	spam_time = infinity;
+	spam_now = false;
+	clear = false;
+	
 	self.insert(cursor1.pos, style.text);
 	
 	static init_style = function(st) {
@@ -58,6 +65,7 @@ function gmtf(style_struct=undefined) constructor {
 		if variable_struct_exists(st, "c_text_focused") style.c_text_focused = st.c_text_focused;
 		if variable_struct_exists(st, "c_selection") style.c_selection = st.c_selection;
 		if variable_struct_exists(st, "h_align") style.h_align = st.h_align;
+		if variable_struct_exists(st, "padding") style.padding = st.padding;
 	}
 	
 	static copy_cursor_info = function(from, to) {
@@ -68,7 +76,6 @@ function gmtf(style_struct=undefined) constructor {
 		to.cx = from.cx;
 		to.cy = from.cy;
 		to.cxs = from.cxs;
-		to.lnw = from.lnw;
 	}
 	
 	static fit_lines = function(ins_len) {
@@ -164,10 +171,12 @@ function gmtf(style_struct=undefined) constructor {
 		curs.rel_pos = curs.info[1];
 		curs.cx = self.get_range_width(curs.line[1], curs.line[1] + curs.rel_pos);
 		curs.cy = curs.line[0] * style.lh;
-		curs.lnw = self.get_range_width(curs.line[1], curs.line[2]);
 		
 		if save_cx curs.cxs = curs.cx;
 		if copy_to != undefined copy_cursor_info(curs, copy_to);
+		
+		cursor_tick = 0;
+		cursor_visible = true;
 	}
 	
 	static get_range_width = function(from, to) {
@@ -284,42 +293,75 @@ function gmtf(style_struct=undefined) constructor {
 		pad_aty = aty + style.padding.top;
 		pad_w = style.w - style.padding.right - style.padding.left;
 		pad_h = style.h - style.padding.top - style.padding.bottom;
+		gamespd = game_get_speed(gamespeed_fps);
 		
 		mx = gui ? device_mouse_x_to_gui(0) : mouse_x;
 		my = gui ? device_mouse_y_to_gui(0) : mouse_y;
 		
-		if keyboard_check_pressed(vk_anykey) {
-			
-			switch(keyboard_key) {
-				case vk_left:
-					self.move_cursor(cursor1, -1, 0);
-					break;
-				case vk_right:
-					self.move_cursor(cursor1, 1, 0);
-					break;
-				case vk_up:
-					self.move_cursor(cursor1, 0, -1);
-					break;
-				case vk_down:
-					self.move_cursor(cursor1, 0, 1);
-					break;
-				case vk_enter:
-					keyboard_string += chr_enter;
-					break;
-				case vk_backspace:
-					self.del(max(1, abs(cursor1.pos - cursor2.pos)), true);
-					break;
-				case vk_delete:
-					self.del(max(1, abs(cursor1.pos - cursor2.pos)), false);
-					break;
-			}	
-		}
-		
-		if keyboard_check(vk_anykey) {
-			
-			if string_length(keyboard_string) != 0 {
-				self.insert(cursor1.pos, keyboard_string);
+		if !has_focus clear = false;
+		else {
+			if !clear {
+				clear = true;
 				keyboard_string = "";
+				cursor_tick = 0;
+				cursor_visible = true;
+			}
+			
+			if ++cursor_tick >= gamespd * 0.5 {
+				cursor_tick = 0;
+				cursor_visible = !cursor_visible;
+			}
+			
+			spam_now = false;
+			if keyboard_check_pressed(vk_anykey) {
+				spam_time = gamespd * 0.5;
+				spam_tick = 0;
+			}
+			else if keyboard_check(vk_anykey) {
+				if ++spam_tick > spam_time {
+					spam_tick = 0;
+					spam_time = gamespd * 0.03;
+					spam_now = true;
+				}
+			}
+		
+			if keyboard_check_released(vk_anykey) {
+				keyboard_string = "";
+			}
+		
+			if keyboard_check_pressed(vk_anykey) or spam_now {
+			
+				switch(keyboard_key) {
+					case vk_left:
+						self.move_cursor(cursor1, -1, 0);
+						break;
+					case vk_right:
+						self.move_cursor(cursor1, 1, 0);
+						break;
+					case vk_up:
+						self.move_cursor(cursor1, 0, -1);
+						break;
+					case vk_down:
+						self.move_cursor(cursor1, 0, 1);
+						break;
+					case vk_enter:
+						keyboard_string += chr_enter;
+						break;
+					case vk_backspace:
+						self.del(max(1, abs(cursor1.pos - cursor2.pos)), true);
+						break;
+					case vk_delete:
+						self.del(max(1, abs(cursor1.pos - cursor2.pos)), false);
+						break;
+				}	
+			}
+		
+			if keyboard_check(vk_anykey) {
+			
+				if string_length(keyboard_string) != 0 {
+					self.insert(cursor1.pos, keyboard_string);
+					keyboard_string = "";
+				}
 			}
 		}
 		
@@ -346,7 +388,7 @@ function gmtf(style_struct=undefined) constructor {
 		}
 		draw_set_valign(0);
 		
-		if has_focus {
+		if has_focus and cursor_visible {
 			draw_line_width(pad_atx + cursor1.cx, pad_aty + cursor1.cy, pad_atx + cursor1.cx, pad_aty + cursor1.cy + style.lh, 2);
 		}
 		
@@ -355,6 +397,7 @@ function gmtf(style_struct=undefined) constructor {
 		draw_set_alpha(prevdraw[2]);
 		
 		if mouse_check_button_pressed(mb_left) {
+			has_focus = point_in_rectangle(mx, my, atx, aty, atx + style.w, aty + style.h);
 			self.cursor_to_mouse(cursor2);
 			self.copy_cursor_info(cursor2, cursor1);
 		}

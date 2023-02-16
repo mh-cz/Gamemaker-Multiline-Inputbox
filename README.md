@@ -1,2 +1,2 @@
-# GMTF - GameMaker (multiline) Text Field
+# GMTF - GameMaker Text Field (multiline)
 

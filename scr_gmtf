@@ -1,0 +1,460 @@
+function gmtf(w, h, text="") constructor {
+
+	chr_end = "¾";
+	chr_enter = "½";
+	chr_nl = "⅗";
+
+	l_lines = ds_list_create(); // [i, from, to, "text"]
+	l_chars = ds_list_create(); // ["ch", width]
+
+	l_chars[| 0] = [chr_end, 0];
+	
+	mx = 0;
+	my = 0;
+	atx = 0;
+	aty = 0;
+	tf_w = w;
+	tf_h = h;
+	tf_lh = 24;
+	tf_lnum = max(1, h div tf_lh);
+	
+	cursor1 = { pos: 0, line: [0,0,0,""], cx: 0, cy: 0, lnw: 0, cxs: 0 };
+	cursor2 = { pos: 0, line: [0,0,0,""], cx: 0, cy: 0, lnw: 0, cxs: 0 };
+	
+	has_focus = true;
+	bkg_color_unfocused = c_gray;
+	bkg_color_focused = c_ltgray;
+	selection_color = c_red;
+	
+	//self.insert(cursor1.pos, text);
+	//self.update_cursor(cursor1, true, cursor2);
+	
+	static copy_cursor_info = function(from, to) {
+		
+		to.pos = from.pos;
+		to.line = [from.line[0], from.line[1], from.line[2], from.line[3]];
+		to.rel_pos = from.rel_pos;
+		to.cx = from.cx;
+		to.cy = from.cy;
+		to.cxs = from.cxs;
+		to.lnw = from.lnw;
+	}
+	/*
+	static del_chars = function(ch, from=0) {
+		
+		for(var i = from; i < ds_list_size(l_chars); i++) {
+			if l_chars[| i][0] == ch ds_list_delete(l_chars, i);
+		}
+	}*/
+	
+	static find_nl_pos_by_width = function(from) {
+		
+		var wid = 0;
+		for(var i = from; i < ds_list_size(l_chars); i++) {
+			var char = l_chars[| i];
+			var ch = char[0];
+			var chw = char[1];
+			if ch == chr_enter return 0;
+			wid += chw;
+			if wid > tf_w return i;
+			else if ch == chr_nl ds_list_delete(l_chars, i);
+		}
+		return 0;
+	}
+
+	/*static fix_nl = function(from_line) {
+		for(var k = from_line, j = ds_list_size(l_lines); k < j; k++) {
+			var nlp = self.find_nl_pos_by_width(l_lines[| k][1]);
+			if nlp != -1 {
+				ds_list_insert(l_chars, nlp, [chr_nl, 0]);
+				if nlp == cursor1.pos-1 cursor1.pos++;
+			}
+		}		
+	}*/
+	
+	static fit_lines = function(ins_len) {
+		
+		ds_list_clear(l_lines);
+		
+		var li = 0;
+		var wid = 0;
+		var off = 0;
+		var pos = 0;
+		var overflow = false;
+		var cpos = cursor1.pos;
+		var lnshift = 0;
+		
+		l_lines[| li] = [li, pos, pos, ""];
+		var line = l_lines[| li];
+		
+		cursor1.pos += ins_len;
+		
+		for(var i = 0; i < ds_list_size(l_chars); i++) {
+			
+			var char = l_chars[| i];
+			var ch = char[0];
+			var chw = char[1];
+			
+			wid += chw;
+			
+			var nl = wid >= tf_w;
+			var enter = ch == chr_enter;
+			if nl {
+				ds_list_insert(l_chars, i++, [chr_nl, 0]);
+				line[2] = pos++;
+				if pos > cpos and pos <= cursor1.pos cursor1.pos++;
+				//line[3] += chr_nl;
+			}
+			else if ch == chr_nl {
+				ds_list_delete(l_chars, i--);
+				line[2]++;
+				continue;
+			}
+			if enter {
+				line[2] = pos++;
+				//line[3] += ch;
+			}
+			if nl or enter {
+				overflow = (++li >= tf_lnum);
+				l_lines[| li] = [li, pos, pos, ""];
+				line = l_lines[| li];
+				wid = chw;
+			}
+			if !enter {
+				line[2] = pos++;
+				if ch != chr_end line[3] += ch;
+			}
+			
+		}
+
+		return overflow;
+	}
+
+	static insert = function(pos, text) {
+		
+		var ins_pos = pos;
+		var ch = "";
+		var chw = 0;
+		
+		text = "";
+		var rch = chr(random_range(30, 90));
+		for(var i = 0; i < 10; i++) {
+			text += rch;
+		}
+		
+		var len = string_length(text);
+		
+		for(var i = 0; i < len; i++) {
+			ch = string_char_at(text, i+1);
+			chw = string_width(ch);
+			switch(ch) {
+				case chr_enter: ds_list_insert(l_chars, pos++, [ch, 0]); break;
+				default: ds_list_insert(l_chars, pos++, [ch, chw]);
+			}
+		}
+		
+		self.fit_lines(len);
+		
+		self.update_cursor(cursor1, true, cursor2);
+	}
+	/*
+	static add_nl = function(from) {
+		
+		var wid = 0;
+		for(var i = 0; i < ds_list_size(l_chars); i++) {
+			var char = l_chars[| i];
+			ch = char[0];
+			chw = char[1];
+			
+			if ch == chr_enter {
+				wid = 0;
+				continue;
+			}
+			
+			wid += chw;
+			if wid > tf_w {
+				ds_list_insert(l_chars, i, [chr_nl, 0]);
+				if i == cursor1.pos-1 cursor1.pos++;
+				wid = 0;
+			}
+			else if ch == chr_nl {
+				ds_list_delete(l_chars, i--);
+			}
+		}
+	}*/
+	
+	static update = function(from=0, save_cx=false) {
+
+		self.update_lines(from);
+		self.update_cursor(cursor1, save_cx);
+	}
+	/*
+	static will_fit = function(at_pos, with_chw) {
+		
+		var pos = 0;
+		var ind = 0;
+		var step = 0;
+		
+		var char = 0;
+		var ch = "";
+		var chw = 0;
+		
+		for(var i = 0, s = ds_list_size(l_chars)+step; i < s; i++) {
+			
+			if i == at_pos {
+				at_pos = -1;
+				step = 1;
+			}
+			else {
+				char = l_chars[| i-step];
+				ch = char[0];
+				chw = char[1];
+			}
+			
+			var nl = ch == chr_nl;
+			var enter = ch == chr_enter;
+
+			pos++;
+			
+			if nl or enter {
+				if ++ind >= tf_lnum break;
+			}
+		}
+	}
+	
+	static update_lines = function(from) {
+		
+		self.add_nl(from);
+		ds_list_clear(l_lines);
+		
+		var ind = 0;
+		var pos = 0;
+		
+		l_lines[| ind] = [ind, pos, pos, ""];
+		var line = l_lines[| ind];
+		
+		for(var i = 0, s = ds_list_size(l_chars); i < s; i++) {
+			var char = l_chars[| i];
+			var ch = char[0];
+			
+			var nl = ch == chr_nl;
+			var enter = ch == chr_enter;
+			var skip_char = nl or enter or ch == chr_end;
+			
+			line[2] = pos++;
+			if !skip_char line[3] += ch;
+			
+			if nl or enter {
+				if ++ind >= tf_lnum break;
+				l_lines[| ind] = [ind, pos, pos, ""];
+				line = l_lines[| ind];
+			}
+		}
+		return [pos-1, ind-1];
+	}*/
+	
+	static update_cursor = function(curs, save_cx=false, copy_to=undefined) {
+		
+		curs.pos = clamp(curs.pos, 0, ds_list_size(l_chars)-1);
+		curs.info = self.get_cursor_line(curs.pos); // [line, rel_pos]
+		curs.line = curs.info[0];
+		curs.rel_pos = curs.info[1];
+		curs.cx = self.get_range_width(curs.line[1], curs.line[1] + curs.rel_pos);
+		curs.cy = curs.line[0] * tf_lh;
+		curs.lnw = self.get_range_width(curs.line[1], curs.line[2]);
+		
+		if save_cx curs.cxs = curs.cx;
+		if copy_to != undefined copy_cursor_info(curs, copy_to);
+	}
+	
+	static get_range_width = function(from, to) {
+		
+		var wid = 0;
+		for(var i = from; i < to; i++) {
+			wid += l_chars[| i][1];
+		}
+		return wid;
+	}
+	
+	static get_nearest_rel_pos_by_x = function(curs, target_x, line) {
+		
+		var closest = infinity;
+		var pos = -1;
+		var wid = 0;
+		for(var i = line[1]; i < line[2]; i++) {
+			if abs(target_x - wid) < closest {
+				closest = abs(target_x - wid);
+				pos++;
+			}
+			else break;
+			wid += l_chars[| i][1];
+		}
+		return pos + (abs(target_x - wid) < closest ? 1 : 0);
+	}
+	
+	static get_cursor_line = function(pos) {
+		
+		for(var i = 0, s = ds_list_size(l_lines); i < s; i++) {
+			var line = l_lines[| i];
+			var from = line[1];
+			var to = line[2];
+			if clamp(pos, from, to) == pos return [line, pos - from];
+		}
+		return [l_lines[| 0], 0];
+	}
+	
+	static cursor_to_mouse = function(curs, mousex = mx, mousey = my) {
+		
+		var line = l_lines[| clamp((mousey - aty) div tf_lh, 0, ds_list_size(l_lines)-1)];
+		curs.pos = line[1] + self.get_nearest_rel_pos_by_x(curs, max(0, mousex - atx), line);
+		last_right = curs.pos == line[1] ? -1 : 1;
+		update_cursor(curs, true);
+	}
+	
+	static move_cursor = function(curs, r = 0, d = 0) {
+		
+		if r != 0 {
+			curs.pos = clamp(curs.pos + r, 0, ds_list_size(l_chars));
+			self.update_cursor(curs, true);
+		}
+		
+		if d != 0 {
+			var nextl = curs.line[0] + d;
+			if nextl == clamp(nextl, 0, ds_list_size(l_lines)-1) {
+				var line = l_lines[| nextl];
+				curs.pos = line[1] + self.get_nearest_rel_pos_by_x(curs, curs.cxs, line);
+				self.update_cursor(curs);
+			}
+		}
+		
+		if !keyboard_check(vk_shift) copy_cursor_info(cursor1, cursor2);
+	}
+	
+	static selection_draw = function() {
+		
+		draw_set_color(selection_color);
+		draw_set_alpha(0.25);
+		if cursor1.line[0] == cursor2.line[0] {
+			draw_rectangle(atx + cursor1.cx, aty + cursor1.cy, atx + cursor2.cx, aty + cursor2.cy + tf_lh - 1, false);
+		}
+		else {
+			var upper = cursor1.pos < cursor2.pos ? cursor1 : cursor2;
+			var lower = cursor1.pos < cursor2.pos ? cursor2 : cursor1;
+			draw_rectangle(atx + upper.cx, aty + upper.cy, atx + get_range_width(upper.line[1], upper.line[2]), aty + upper.cy + tf_lh - 1, false);
+			draw_rectangle(atx, aty + lower.cy, atx + get_range_width(lower.line[1], lower.pos), aty + lower.cy + tf_lh - 1, false);
+			for(var i = upper.line[0]+1; i < lower.line[0]; i++) {
+				var line = l_lines[| i];
+				draw_rectangle(atx, aty + i * tf_lh, atx + get_range_width(line[1], line[2]), aty + i * tf_lh + tf_lh - 1, false);
+			}
+		}
+		draw_set_alpha(1);
+	}
+
+	
+	static draw = function(x, y, gui=true) {
+		
+		atx = x;
+		aty = y;
+		
+		if gui {
+			mx = device_mouse_x_to_gui(0);
+			my = device_mouse_y_to_gui(0);
+		}
+		else {
+			mx = mouse_x;
+			my = mouse_y;
+		}
+		
+		if keyboard_check_pressed(vk_anykey) {
+			
+			var dist = max(1, abs(cursor1.pos - cursor2.pos));
+			var len = ds_list_size(l_chars);
+			
+			switch(keyboard_key) {
+				case vk_left:
+					self.move_cursor(cursor1, -1, 0);
+					break;
+				case vk_right:
+					self.move_cursor(cursor1, 1, 0);
+					break;
+				case vk_up:
+					self.move_cursor(cursor1, 0, -1);
+					break;
+				case vk_down:
+					self.move_cursor(cursor1, 0, 1);
+					break;
+				case vk_enter:
+					keyboard_string += chr_enter;
+					break;
+				case vk_backspace:
+					if cursor1.pos < cursor2.pos {
+						repeat(dist) ds_list_delete(l_chars, --cursor2.pos);
+					}
+					else {
+						repeat(dist) ds_list_delete(l_chars, --cursor1.pos);
+						cursor1.pos = cursor2.pos;
+					}
+					self.fit_lines(0);
+					self.update_cursor(cursor1, true, cursor2);
+					break;
+				case vk_delete:
+					if cursor1.pos != cursor2.pos {
+						if cursor1.pos < cursor2.pos {
+							repeat(dist) ds_list_delete(l_chars, --cursor2.pos);
+						}
+						else {
+							repeat(dist) ds_list_delete(l_chars, --cursor1.pos);
+							cursor1.pos = cursor2.pos;
+						}
+					}
+					else if cursor1.pos+1 < len {
+						repeat(dist) ds_list_delete(l_chars, cursor1.pos);
+					}
+					self.fit_lines(0);
+					self.update_cursor(cursor1, true, cursor2);
+					break;
+			}
+			
+		}
+		
+		if keyboard_check(vk_anykey) {
+			
+			if string_length(keyboard_string) != 0 {
+				self.insert(cursor1.pos, keyboard_string);
+				keyboard_string = "";
+			}
+		}
+		
+		draw_set_color(has_focus ? bkg_color_focused : bkg_color_unfocused);
+		draw_rectangle(atx, aty, atx + tf_w, aty + tf_h, false);
+		
+		if has_focus and cursor1.pos != cursor2.pos self.selection_draw();
+		
+		draw_set_color(c_white);
+		draw_text(atx + tf_w + 20, aty + -1 * tf_lh, cursor1);
+		draw_text(atx + tf_w + 20, aty + -2 * tf_lh, ds_list_size(l_chars));
+		
+		
+		draw_set_valign(2);
+		for(var i = 0, s = ds_list_size(l_lines); i < s; i++) {
+			draw_set_color(c_black);
+			draw_text(atx, aty + i * tf_lh + tf_lh, l_lines[| i][3]);
+			draw_set_color(c_white);
+			draw_text(atx + tf_w + 20, aty + i * tf_lh + tf_lh, l_lines[| i]);
+		}
+		draw_set_valign(0);
+		
+		if has_focus {
+			draw_set_color(c_black);
+			draw_line_width(atx + cursor1.cx, aty + cursor1.cy, x + cursor1.cx, y + cursor1.cy + tf_lh, 2);
+		}
+		
+		if mouse_check_button_pressed(mb_left) {
+			self.cursor_to_mouse(cursor2);
+			self.copy_cursor_info(cursor2, cursor1);
+		}
+		else if mouse_check_button(mb_left) {
+			self.cursor_to_mouse(cursor1);
+		}
+	}
+}

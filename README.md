@@ -23,7 +23,7 @@ In a Draw event
 ```font``` - (font) font, default: ```-1``` (no font set)  
 ```text``` - (string) set text, default: ```""``` (no text)  
 ```letter_case``` - (GMTF enum) transform every character to upper or lower case, default: ```GMTF.DEFAULT```  
-```min_chw``` - (real) minimal width of each character, default: ```0``` (WARNING: values other than ```0``` will make the text render by characters instead of by lines)  
+```min_chw``` - (real) minimal width of each character, default: ```0``` (WARNING: values other than ```0``` will make the text render character by character instead of line by line)  
 ```stoppers``` - (string) characters which stop the cursor while moving using ctrl, default: ```" .,()[]{}<>?|:\\+-*/=" + chr(29)```  
 #### Colors
 ```c_bkg_unfocused``` - (struct) unfocused background color and alpha, default: ```{ c: c_gray, a: 1 }```  

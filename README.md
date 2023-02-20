@@ -3,7 +3,7 @@ An upgraded version of https://github.com/mh-cz/GameMaker-InputBox
   
 ### Can do:
 Ctrl+C - copy  
-Ctrl+V - paset  
+Ctrl+V - paste  
 Ctrl+X - cut  
 Tab - switch to next tf  
 Shift+Tab - switch to previous tf  

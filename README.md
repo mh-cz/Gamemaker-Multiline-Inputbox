@@ -2,10 +2,17 @@
 An upgraded version of https://github.com/mh-cz/GameMaker-InputBox  
   
 ### Creating a text field
-Basic  
+```<text_field_variable> = new gmtf(style_struct=undefined);```  
+Basic:  
 ```tf1 = new gmtf();```  
-Using a struct to define style  
+Using a struct to define style:  
 ```tf1 = new gmtf({ w: 300, h: 100, text: "Hi there", c_text_unfocused: { c: white, a: 1 } });```  
+### Drawing a text field
+```<text_field_variable>.draw(x, y, gui_ev=true)```  
+In Draw GUI event:  
+```tf1.draw(50, 60)```  
+In a Draw event  
+```tf1.draw(50, 60, false)```  
   
 ### Style variables
 ```w``` - (real) text field width, default: ```300```  
@@ -25,7 +32,7 @@ Using a struct to define style
 ```c_text_focused``` - (struct) focused text color and alpha, default: ```{ c: c_black, a: 1 }```  
 ```c_selection``` - (struct) mouse selection color and alpha, default: ```{ c: c_blue, a: 0.275 }```  
   
-Style can be altered later by calling ```tf1.set_style(<style_struct>)```  
+Style can be changed later by calling ```tf1.set_style(<style_struct>)```  
 WARNING: Do not run style changes (except colors) every step since it has to update every single character and line which will cause lag  
 
 

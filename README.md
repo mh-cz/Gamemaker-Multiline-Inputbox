@@ -18,7 +18,12 @@ Using a struct to predefine style
 ```letter_case``` - (GMTF enum) transform every character to upper or lower case, default ```GMTF.DEFAULT```  
 ```min_chw``` - (real) minimal width of each character, default ```0``` (WARNING: every value other than 0 will make the text render by characters instead of by lines)  
 ```stoppers``` - (string) characters which stop the cursory while moving the cursor multiple placed using ctrl  
-
+  
+```c_bkg_unfocused``` - (struct) unfocused background color and alpha, default: ```{ c: c_gray, a: 1 }```
+```c_bkg_focused``` - (struct) focused background color and alpha, default: ```{ c: c_ltgray, a: 1 }```
+```c_text_unfocused``` - (struct) unfocused text color and alpha, default: ```{ c: c_ltgray, a: 1 }```
+```c_text_focused``` - (struct) focused text color and alpha, default: ```{ c: c_ltgray, a: 1 }```
+```c_selection``` - (struct) selection color and alpha, default: ```{ c: c_ltgray, a: 1 }```
 
 		h: 110, 
 		lh: 24, 

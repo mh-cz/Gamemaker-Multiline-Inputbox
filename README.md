@@ -16,17 +16,25 @@ An upgraded version of https://github.com/mh-cz/GameMaker-InputBox
 ```LMB double click``` - select word  
   
 ### Creating
-```<text_field_variable> = new gmtf(style_struct=undefined)```  
+```<text_field> = new gmtf(style_struct=undefined)```  
 Basic:  
 ```tf1 = new gmtf();```  
 Using a struct to define style:  
 ```tf1 = new gmtf({ w: 450, h: 90, text: "Hi there", c_text_unfocused: { c: white, a: 1 } });```  
+Focus right away:  
+```tf1 = new gmtf().focus();```  
+
 ### Drawing
-```<text_field_variable>.draw(x, y, gui_ev=true)```  
+```<text_field>.draw(x, y, gui_ev=true)```  
 In Draw GUI event:  
 ```tf1.draw(50, 60);```  
 In a Draw event  
 ```tf1.draw(50, 60, false);```  
+  
+### Focus
+There can be just one focused text field  
+A tf focuses when you click inside of it  
+It's also possible to force focus tf using ```<text_field>.focus()```  
   
 ### Style variables
 ```w``` - (real) text field width, default: ```300```  
@@ -60,10 +68,10 @@ Style can be changed later by calling ```tf1.set_style(<style_struct>)```
 After these are set you can switch text fields using Tab (next) and Shift+Tab (previous)  
   
 ### Get/Set text
-```<text_field_variable>.get_text(keep_enters=false);```  
+```<text_field>.get_text(keep_enters=false);```  
 keep_enters:  
 false (default): replace enter characters chr(29) with regular ```\n``` characters  
 true: keep original enter characters chr(29), useful when copying between text fields  
   
-```<text_field_variable>.set_text(text);```  
+```<text_field>.set_text(text);```  
 Replace whatever is inside with a new text  

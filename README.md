@@ -35,7 +35,7 @@ In a Draw event
 Style can be changed later by calling ```tf1.set_style(<style_struct>)```  
 WARNING: Do not run style changes (except colors) every step since it has to update every single character and line which will cause lag  
  
-### Jump to another text field
+### Text field switching
 ```tf1.set_next(tf2);```  
 ```tf2.set_next(tf3);```  
 ```tf3.set_next(tf1);```  

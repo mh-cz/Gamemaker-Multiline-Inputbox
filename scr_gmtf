@@ -3,7 +3,6 @@ enum GMTF { DEFAULT=0, TO_LOWER=1, TO_UPPER=2, CHR_END=28, CHR_ENTER=29, CHR_NL=
 
 function gmtf(style_struct=undefined) constructor {
 	
-	// some low ascii chars no one uses
 	chr_end = chr(GMTF.CHR_END);
 	chr_enter = chr(GMTF.CHR_ENTER);
 	chr_nl = chr(GMTF.CHR_NL);
@@ -64,12 +63,10 @@ function gmtf(style_struct=undefined) constructor {
 	self.update_style(style_struct);
 	
 	static set_next = function(text_field) {
-		
 		next_tf = text_field;
 	}
 	
 	static set_previous = function(text_field) {
-		
 		previous_tf = text_field;
 	}
 	

@@ -3,6 +3,11 @@ enum GMTF { DEFAULT=0, TO_LOWER=1, TO_UPPER=2 }
 
 function gmtf(style_struct=undefined) constructor {
 	
+	// some low ascii chars no one uses
+	chr_end = chr(28);
+	chr_enter = chr(29);
+	chr_nl = chr(30);
+	
 	style = {
 		w: 256, 
 		h: 110, 
@@ -18,11 +23,8 @@ function gmtf(style_struct=undefined) constructor {
 		char_limit: infinity,
 		letter_case: GMTF.DEFAULT,
 		min_chw: 0,
+		stoppers: " .,()[]{}<>?|:\\+-*/=" + chr_enter,
 	}
-
-	chr_end = "¾";
-	chr_enter = "½";
-	chr_nl = "⅗";
 
 	l_lines = ds_list_create();
 	l_chars = ds_list_create();
@@ -82,6 +84,7 @@ function gmtf(style_struct=undefined) constructor {
 					case "font":
 					case "char_limit":
 					case "padding":
+					case "text":
 						update_lines = true;
 						break;
 					case "min_chw":
@@ -312,6 +315,17 @@ function gmtf(style_struct=undefined) constructor {
 		if !keyboard_check(vk_shift) copy_cursor_info(cursor1, cursor2);
 	}
 	
+	static expand_selection = function(right, stoppers=style.stoppers) {
+		
+		if right {
+			var s = ds_list_size(l_chars)-1;
+			while(cursor1.pos++ < s) if string_pos(l_chars[| cursor1.pos][0], style.stoppers) break;
+		}
+		else {
+			while(cursor2.pos-- > 0) if string_pos(l_chars[| cursor2.pos][0], style.stoppers) { cursor2.pos++; break; }
+		}
+	}
+	
 	static selection_draw = function() {
 		
 		draw_set_color(style.c_selection.c);
@@ -332,7 +346,7 @@ function gmtf(style_struct=undefined) constructor {
 		draw_set_alpha(1);
 	}
 
-	static del = function(backspace=true) {
+	static del = function(backspace=true, ctrl=false) {
 		
 		var len = max(1, abs(cursor1.pos - cursor2.pos));
 		
@@ -349,6 +363,11 @@ function gmtf(style_struct=undefined) constructor {
 			if cursor1.pos+1 < ds_list_size(l_chars) ds_list_delete(l_chars, cursor1.pos);
 		}
 		
+		if ctrl {
+			self.expand_selection(!backspace);
+			self.del();
+		}
+		
 		self.fit_lines();
 		self.update_cursor(cursor1, true, cursor2);
 	}
@@ -362,16 +381,16 @@ function gmtf(style_struct=undefined) constructor {
 		self.insert(txt);
 	}
 	
-	static get_text = function(keep_enters=true) {
+	static get_text = function(keep_enters=false) {
 		
 		var pos = 0;
 		var to = ds_list_size(l_chars);
-		var str = keep_enters ? @"" : "";
+		var str = @"";
 		
 		while(pos < to-1) str += l_chars[| pos++][0];
 		
 		str = string_replace_all(str, chr_end, "");
-		str = string_replace_all(str, chr_enter, "\n");
+		if !keep_enters str = string_replace_all(str, chr_enter, "\n");
 		str = string_replace_all(str, chr_nl, "");
 		return str;
 	}
@@ -403,7 +422,7 @@ function gmtf(style_struct=undefined) constructor {
 		self.del();
 	}
 	
-	static draw = function(x, y, gui=true) {
+	static draw = function(x, y, gui_ev=true) {
 		
 		atx = x;
 		aty = y;
@@ -411,10 +430,11 @@ function gmtf(style_struct=undefined) constructor {
 		pad_aty = aty + style.padding.top;
 		pad_w = style.w - style.padding.right - style.padding.left;
 		pad_h = style.h - style.padding.top - style.padding.bottom;
+		
 		gamespd = game_get_speed(gamespeed_fps);
 		
-		mx = gui ? device_mouse_x_to_gui(0) : mouse_x;
-		my = gui ? device_mouse_y_to_gui(0) : mouse_y;
+		mx = gui_ev ? device_mouse_x_to_gui(0) : mouse_x;
+		my = gui_ev ? device_mouse_y_to_gui(0) : mouse_y;
 		
 		has_focus = global.GMTF_DATA.active == self;
 		
@@ -459,10 +479,8 @@ function gmtf(style_struct=undefined) constructor {
 			}
 			
 			if double_clicked {
-				var s = ds_list_size(l_chars)-1;
-				var stop = " .()[]{}|+-*/=";
-				while(cursor1.pos++ < s) if string_pos(l_chars[| cursor1.pos][0], stop) break;
-				while(cursor2.pos-- > 0) if string_pos(l_chars[| cursor2.pos][0], stop) { cursor2.pos++; break; };
+				self.expand_selection(true);
+				self.expand_selection(false);
 				self.update_cursor(cursor1, true);
 				self.update_cursor(cursor2);
 			}
@@ -493,10 +511,10 @@ function gmtf(style_struct=undefined) constructor {
 						keyboard_string += chr(9);
 						break;
 					case vk_backspace:
-						self.del();
+						self.del(true, keyboard_check(vk_control));
 						break;
 					case vk_delete:
-						self.del(false);
+						self.del(false, keyboard_check(vk_control));
 						break;
 				}
 			}
@@ -508,7 +526,7 @@ function gmtf(style_struct=undefined) constructor {
 						keyboard_string = "";
 						self.copy();
 					}
-					else if keyboard_check_pressed(ord("V")) {
+					else if keyboard_check_pressed(ord("V")) or spam_now {
 						keyboard_string = "";
 						self.paste();
 					}
@@ -522,6 +540,9 @@ function gmtf(style_struct=undefined) constructor {
 						cursor1.pos = ds_list_size(l_chars);
 						self.update_cursor(cursor1, true);
 						self.update_cursor(cursor2);
+					}
+					else if keyboard_check_pressed(vk_backspace) {
+						keyboard_string = "";
 					}
 				}
 			

@@ -2,15 +2,17 @@
 An upgraded version of https://github.com/mh-cz/GameMaker-InputBox  
   
 ### Can do:
-Ctrl+C - copy  
-Ctrl+V - paste  
-Ctrl+X - cut  
-Tab - switch to next tf  
-Shift+Tab - switch to previous tf  
-Left, Right, Up, Down arrows - move cursor  
-LMB click - move cursor  
-LMB click and drag - select text  
-Left/Right+Ctrl - skip words  
+```Ctrl + C``` - copy  
+```Ctrl + V``` - paste  
+```Ctrl + X``` - cut  
+```Tab``` - switch to next text field  
+```Shift+Tab``` - switch to previous text field  
+```Left/Right/Up/Down``` - move cursor  
+```Left/Right/Up/Down + Shift``` - select text  
+```LMB click``` - move cursor  
+```LMB click and drag``` - select text  
+```LMB double click``` - select word  
+```Left/Right + Ctrl``` - skip words  
 
 ### Creating
 ```<text_field_variable> = new gmtf(style_struct=undefined)```  

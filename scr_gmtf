@@ -313,7 +313,11 @@ function gmtf(style_struct=undefined) constructor {
 		
 		if r != 0 {
 			if !ctrl curs.pos = clamp(curs.pos + r, 0, ds_list_size(l_chars));
-			else self.expand_selection(r, style.stoppers, curs);
+			else {
+				var prevpos = curs.pos;
+				self.expand_selection(r, style.stoppers, curs);
+				if curs.pos == prevpos curs.pos = clamp(curs.pos + r, 0, ds_list_size(l_chars))
+			}
 			self.update_cursor(curs, true);
 		}
 		
@@ -337,7 +341,7 @@ function gmtf(style_struct=undefined) constructor {
 				while(cursor1.pos++ < s) if string_pos(l_chars[| cursor1.pos][0], style.stoppers) break;
 			}
 			else {
-				while(cursor2.pos-- > 0) if string_pos(l_chars[| cursor2.pos][0], style.stoppers) { cursor2.pos++; break; }
+				while(cursor2.pos-- > 0) if string_pos(l_chars[| cursor2.pos][0], style.stoppers) break;
 			}
 		}
 		else if right {
@@ -345,7 +349,7 @@ function gmtf(style_struct=undefined) constructor {
 			while(curs.pos++ < s) if string_pos(l_chars[| curs.pos][0], style.stoppers) break;
 		}
 		else {
-			while(curs.pos-- > 0) if string_pos(l_chars[| curs.pos][0], style.stoppers) { curs.pos++; break; }
+			while(curs.pos-- > 0) if string_pos(l_chars[| curs.pos][0], style.stoppers) break;
 		}
 	}
 	
@@ -510,7 +514,7 @@ function gmtf(style_struct=undefined) constructor {
 				self.update_cursor(cursor2);
 			}
 		
-			if keyboard_check_released(vk_anykey) {
+			if !keyboard_check(vk_anykey) {
 				keyboard_string = "";
 			}
 		

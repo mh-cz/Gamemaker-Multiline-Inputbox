@@ -1,4 +1,4 @@
-global.GMTF_DATA = { active: undefined }
+global.GMTF_DATA = { active: undefined, switch_tick: 0 }
 enum GMTF { DEFAULT=0, TO_LOWER=1, TO_UPPER=2 }
 
 function gmtf(style_struct=undefined) constructor {
@@ -57,7 +57,21 @@ function gmtf(style_struct=undefined) constructor {
 	double_clicked = false;
 	last_click_pos = 0;
 	
+	next_tf = undefined;
+	previous_tf = undefined;
+	switch_to = undefined;
+	
 	self.update_style(style_struct);
+	
+	static set_next = function(text_field) {
+		
+		next_tf = text_field;
+	}
+	
+	static set_previous = function(text_field) {
+		
+		previous_tf = text_field;
+	}
 	
 	static focus = function() {
 		global.GMTF_DATA.active = self;
@@ -198,6 +212,8 @@ function gmtf(style_struct=undefined) constructor {
 	}
 
 	static insert = function(txt) {
+		
+		txt = string_replace_all(txt, chr(9), "");
 		
 		if style.letter_case == GMTF.TO_LOWER txt = string_lower(txt);
 		else if style.letter_case == GMTF.TO_UPPER txt = string_upper(txt);
@@ -440,6 +456,8 @@ function gmtf(style_struct=undefined) constructor {
 		
 		if !has_focus clear = false;
 		else {
+			global.GMTF_DATA.switch_tick = max(0, --global.GMTF_DATA.switch_tick);
+			
 			if !clear {
 				clear = true;
 				keyboard_string = "";
@@ -448,7 +466,7 @@ function gmtf(style_struct=undefined) constructor {
 			}
 			
 			double_clicked = false;
-			click_tick = max(0, click_tick - 1);
+			click_tick = max(0, --click_tick);
 			if mouse_check_button_released(mb_left) {
 				if click_tick > 0 and last_click_pos == cursor1.pos {
 					double_clicked = true;
@@ -508,7 +526,21 @@ function gmtf(style_struct=undefined) constructor {
 						keyboard_string += chr_enter;
 						break;
 					case vk_tab:
-						keyboard_string += chr(9);
+						keyboard_string = "";
+						if global.GMTF_DATA.switch_tick == 0 {
+							if keyboard_check(vk_shift) {
+								if !is_undefined(previous_tf) {
+									previous_tf.focus();
+									global.GMTF_DATA.switch_tick = 2;
+								}
+							}
+							else {
+								if !is_undefined(next_tf) {
+									next_tf.focus();
+									global.GMTF_DATA.switch_tick = 2;
+								}
+							}
+						}
 						break;
 					case vk_backspace:
 						self.del(true, keyboard_check(vk_control));

@@ -7,13 +7,13 @@ An upgraded version of https://github.com/mh-cz/GameMaker-InputBox
 ```Ctrl + X``` - cut  
 ```Ctrl + A``` - select all  
 ```Tab``` - switch to next text field  
-```Shift+Tab``` - switch to previous text field  
+```Shift + Tab``` - switch to previous text field  
 ```Left/Right/Up/Down``` - move cursor  
-```Left/Right/Up/Down + Shift``` - select text  
+```Shift + Left/Right/Up/Down``` - select text  
 ```LMB click``` - move cursor  
 ```LMB click and drag``` - select text  
 ```LMB double click``` - select word  
-```Left/Right + Ctrl``` - skip words  
+```Ctrl + Left/Right``` - skip words  
 
 ### Creating
 ```<text_field_variable> = new gmtf(style_struct=undefined)```  

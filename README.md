@@ -1,6 +1,17 @@
 # Gamemaker Multiline Text Field
 An upgraded version of https://github.com/mh-cz/GameMaker-InputBox  
   
+### Can do:
+Ctrl+C - copy  
+Ctrl+V - paset  
+Ctrl+X - cut  
+Tab - switch to next tf  
+Shift+Tab - switch to previous tf  
+Left, Right, Up, Down arrows - move cursor  
+LMB click - move cursor  
+LMB click and drag - select text  
+Left/Right+Ctrl - skip words  
+
 ### Creating
 ```<text_field_variable> = new gmtf(style_struct=undefined)```  
 Basic:  
@@ -44,4 +55,12 @@ WARNING: Do not run style changes (except colors) every step since it has to upd
 ```tf2.set_previous(tf1);```  
   
 After these are set you can switch text fields using Tab (next) and Shift+Tab (previous)  
-
+  
+### Get/Set text
+```<text_field_variable>.get_text(keep_enters=false);```  
+keep_enters:  
+false (default): replace enter characters chr(29) with regular ```\n``` characters  
+true: keep original enter characters chr(29), useful when copying between text fields  
+  
+```<text_field_variable>.set_text(text);```  
+Replace whatever is inside with a new text  

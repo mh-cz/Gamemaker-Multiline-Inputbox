@@ -14,8 +14,7 @@ An upgraded version of https://github.com/mh-cz/GameMaker-InputBox
 ```LMB click``` - move cursor  
 ```LMB click and drag``` - select text  
 ```LMB double click``` - select word  
-
-
+  
 ### Creating
 ```<text_field_variable> = new gmtf(style_struct=undefined)```  
 Basic:  
@@ -38,7 +37,7 @@ In a Draw event
 ```font``` - (font) font, default: ```-1``` (no font set)  
 ```text``` - (string) set text, default: ```""``` (no text)  
 ```letter_case``` - (GMTF enum) transform every character to upper or lower case, default: ```GMTF.DEFAULT```  
-```min_chw``` - (real) minimal width of each character, default: ```0``` (WARNING: values other than ```0``` will make the text render character by character instead of line by line)  
+```min_chw``` - (real) minimal width of each character, default: ```0``` (**WARNING:** values other than ```0``` will make the text render character by character instead of line by line)  
 ```stoppers``` - (string) characters which stop the cursor while moving using ctrl, default: ```" .,()[]{}<>?|:\\+-*/=" + chr(29)```  
 #### Colors
 ```c_bkg_unfocused``` - (struct) unfocused background color and alpha, default: ```{ c: c_gray, a: 1 }```  
@@ -48,7 +47,7 @@ In a Draw event
 ```c_selection``` - (struct) mouse selection color and alpha, default: ```{ c: c_blue, a: 0.275 }```  
   
 Style can be changed later by calling ```tf1.set_style(<style_struct>)```  
-WARNING: Do not run style changes (except colors) every step since it has to update every single character and line which will cause lag  
+**WARNING:** Do not run style changes (except colors) every step since it has to update every single character and line which will cause lag  
  
 ### Text field switching
 ```tf1.set_next(tf2);```  

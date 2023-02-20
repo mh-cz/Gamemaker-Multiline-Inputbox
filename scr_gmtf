@@ -1,12 +1,12 @@
 global.GMTF_DATA = { active: undefined, switch_tick: 0 }
-enum GMTF { DEFAULT=0, TO_LOWER=1, TO_UPPER=2 }
+enum GMTF { DEFAULT=0, TO_LOWER=1, TO_UPPER=2, CHR_END=28, CHR_ENTER=29, CHR_NL=30 }
 
 function gmtf(style_struct=undefined) constructor {
 	
 	// some low ascii chars no one uses
-	chr_end = chr(28);
-	chr_enter = chr(29);
-	chr_nl = chr(30);
+	chr_end = chr(GMTF.CHR_END);
+	chr_enter = chr(GMTF.CHR_ENTER);
+	chr_nl = chr(GMTF.CHR_NL);
 	
 	style = {
 		w: 256, 
@@ -312,10 +312,11 @@ function gmtf(style_struct=undefined) constructor {
 		update_cursor(curs, true);
 	}
 	
-	static move_cursor = function(curs, r = 0, d = 0) {
+	static move_cursor = function(curs, r=0, d=0, ctrl=false) {
 		
 		if r != 0 {
-			curs.pos = clamp(curs.pos + r, 0, ds_list_size(l_chars));
+			if !ctrl curs.pos = clamp(curs.pos + r, 0, ds_list_size(l_chars));
+			else self.expand_selection(r, style.stoppers, curs);
 			self.update_cursor(curs, true);
 		}
 		
@@ -331,14 +332,23 @@ function gmtf(style_struct=undefined) constructor {
 		if !keyboard_check(vk_shift) copy_cursor_info(cursor1, cursor2);
 	}
 	
-	static expand_selection = function(right, stoppers=style.stoppers) {
+	static expand_selection = function(right, stoppers=style.stoppers, curs=undefined) {
 		
-		if right {
+		if curs == undefined {
+			if right {
+				var s = ds_list_size(l_chars)-1;
+				while(cursor1.pos++ < s) if string_pos(l_chars[| cursor1.pos][0], style.stoppers) break;
+			}
+			else {
+				while(cursor2.pos-- > 0) if string_pos(l_chars[| cursor2.pos][0], style.stoppers) { cursor2.pos++; break; }
+			}
+		}
+		else if right {
 			var s = ds_list_size(l_chars)-1;
-			while(cursor1.pos++ < s) if string_pos(l_chars[| cursor1.pos][0], style.stoppers) break;
+			while(curs.pos++ < s) if string_pos(l_chars[| curs.pos][0], style.stoppers) break;
 		}
 		else {
-			while(cursor2.pos-- > 0) if string_pos(l_chars[| cursor2.pos][0], style.stoppers) { cursor2.pos++; break; }
+			while(curs.pos-- > 0) if string_pos(l_chars[| curs.pos][0], style.stoppers) { curs.pos++; break; }
 		}
 	}
 	
@@ -511,10 +521,10 @@ function gmtf(style_struct=undefined) constructor {
 			
 				switch(keyboard_key) {
 					case vk_left:
-						self.move_cursor(cursor1, -1, 0);
+						self.move_cursor(cursor1, -1, 0, keyboard_check(vk_control));
 						break;
 					case vk_right:
-						self.move_cursor(cursor1, 1, 0);
+						self.move_cursor(cursor1, 1, 0, keyboard_check(vk_control));
 						break;
 					case vk_up:
 						self.move_cursor(cursor1, 0, -1);
@@ -558,7 +568,7 @@ function gmtf(style_struct=undefined) constructor {
 						keyboard_string = "";
 						self.copy();
 					}
-					else if keyboard_check_pressed(ord("V")) or spam_now {
+					else if keyboard_check_pressed(ord("V")) or (keyboard_check(ord("V")) and spam_now) {
 						keyboard_string = "";
 						self.paste();
 					}

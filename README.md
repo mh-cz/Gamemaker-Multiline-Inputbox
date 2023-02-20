@@ -6,6 +6,7 @@ An upgraded version of https://github.com/mh-cz/GameMaker-InputBox
 ```Ctrl + V``` - paste  
 ```Ctrl + X``` - cut  
 ```Ctrl + A``` - select all  
+```Ctrl + Left/Right``` - skip words  
 ```Tab``` - switch to next text field  
 ```Shift + Tab``` - switch to previous text field  
 ```Left/Right/Up/Down``` - move cursor  
@@ -13,7 +14,7 @@ An upgraded version of https://github.com/mh-cz/GameMaker-InputBox
 ```LMB click``` - move cursor  
 ```LMB click and drag``` - select text  
 ```LMB double click``` - select word  
-```Ctrl + Left/Right``` - skip words  
+
 
 ### Creating
 ```<text_field_variable> = new gmtf(style_struct=undefined)```  

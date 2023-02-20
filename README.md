@@ -2,7 +2,7 @@
 An upgraded version of https://github.com/mh-cz/GameMaker-InputBox  
   
 ### Creating
-```<text_field_variable> = new gmtf(style_struct=undefined);```  
+```<text_field_variable> = new gmtf(style_struct=undefined)```  
 Basic:  
 ```tf1 = new gmtf();```  
 Using a struct to define style:  
@@ -10,9 +10,9 @@ Using a struct to define style:
 ### Drawing
 ```<text_field_variable>.draw(x, y, gui_ev=true)```  
 In Draw GUI event:  
-```tf1.draw(50, 60)```  
+```tf1.draw(50, 60);```  
 In a Draw event  
-```tf1.draw(50, 60, false)```  
+```tf1.draw(50, 60, false);```  
   
 ### Style variables
 ```w``` - (real) text field width, default: ```300```  
@@ -34,5 +34,14 @@ In a Draw event
   
 Style can be changed later by calling ```tf1.set_style(<style_struct>)```  
 WARNING: Do not run style changes (except colors) every step since it has to update every single character and line which will cause lag  
-
+ 
+### Jump to another text field
+```tf1.set_next(tf2);```  
+```tf2.set_next(tf3);```  
+```tf3.set_next(tf1);```  
+```tf1.set_previous(tf3);```  
+```tf3.set_previous(tf2);```  
+```tf2.set_previous(tf1);```  
+  
+After these are set you can switch text fields using Tab (next) and Shift+Tab (previous)  
 

@@ -6,7 +6,7 @@ An upgraded version of https://github.com/mh-cz/GameMaker-InputBox
 Basic:  
 ```tf1 = new gmtf();```  
 Using a struct to define style:  
-```tf1 = new gmtf({ w: 300, h: 100, text: "Hi there", c_text_unfocused: { c: white, a: 1 } });```  
+```tf1 = new gmtf({ w: 450, h: 90, text: "Hi there", c_text_unfocused: { c: white, a: 1 } });```  
 ### Drawing
 ```<text_field_variable>.draw(x, y, gui_ev=true)```  
 In Draw GUI event:  

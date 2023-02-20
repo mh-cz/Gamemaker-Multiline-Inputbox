@@ -1,13 +1,13 @@
 # Gamemaker Multiline Text Field
 An upgraded version of https://github.com/mh-cz/GameMaker-InputBox  
   
-### Creating a text field
+### Creating
 ```<text_field_variable> = new gmtf(style_struct=undefined);```  
 Basic:  
 ```tf1 = new gmtf();```  
 Using a struct to define style:  
 ```tf1 = new gmtf({ w: 300, h: 100, text: "Hi there", c_text_unfocused: { c: white, a: 1 } });```  
-### Drawing a text field
+### Drawing
 ```<text_field_variable>.draw(x, y, gui_ev=true)```  
 In Draw GUI event:  
 ```tf1.draw(50, 60)```  

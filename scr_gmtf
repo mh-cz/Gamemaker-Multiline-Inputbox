@@ -51,8 +51,11 @@ function gmtf(style_struct=undefined) constructor {
 	spam_time = infinity;
 	spam_now = false;
 	clear = false;
+	click_tick = 0;
+	double_clicked = false;
+	last_click_pos = 0;
 	
-	self.set_style(style_struct);
+	self.update_style(style_struct);
 	
 	static focus = function() {
 		global.GMTF_DATA.active = self;
@@ -63,14 +66,30 @@ function gmtf(style_struct=undefined) constructor {
 		global.GMTF_DATA.active = undefined;
 	}
 	
-	static set_style = function(st) {
+	static update_style = function(style_struct=undefined, update_lines=false, update_chars=false) {
 		
-		if is_undefined(st) return;
-		var keys = variable_struct_get_names(style);
-		for(var i = 0, len = array_length(keys); i < len; i++) {
-			var key = keys[i];
-			var data = st[$ key];
-			if !is_undefined(data) style[$ key] = data;
+		var keys = [];
+		if style_struct != undefined {
+			keys = variable_struct_get_names(style_struct);
+			for(var i = 0, len = array_length(keys); i < len; i++) {
+				var key = keys[i];
+				style[$ key] = style_struct[$ key];
+				
+				switch(key) {
+					case "w":
+					case "h":
+					case "lh":
+					case "font":
+					case "char_limit":
+					case "padding":
+						update_lines = true;
+						break;
+					case "min_chw":
+					case "letter_case":
+						update_chars = true;
+						break;
+				}
+			}
 		}
 		
 		pad_atx = atx + style.padding.left;
@@ -78,8 +97,34 @@ function gmtf(style_struct=undefined) constructor {
 		pad_w = style.w - style.padding.right - style.padding.left;
 		pad_h = style.h - style.padding.top - style.padding.bottom;
 		
-		if array_contains(keys, "text") self.set_text(style.text);
-		else self.fit_lines();
+		var prevfont = draw_get_font();
+		draw_set_font(style.font);
+		
+		if update_chars {
+			for(var i = 0, s = ds_list_size(l_chars); i < s; i++) {
+				var ch = l_chars[| i][0];
+				if !(ch == chr_enter or ch == chr_end or ch == chr_nl) {
+					if style.letter_case == GMTF.TO_LOWER ch = string_lower(ch);
+					else if style.letter_case == GMTF.TO_UPPER ch = string_upper(ch);
+					l_chars[| i][0] = ch;
+					l_chars[| i][1] = max(string_width(ch), style.min_chw);
+				}
+			}
+		}
+		
+		if update_lines or update_chars {
+			if array_contains(keys, "text") self.set_text(style.text);
+			else {
+				while(!self.fit_lines()) {
+					ds_list_delete(l_chars, --cursor1.pos);
+					if l_chars[| cursor1.pos-1][0] == chr_nl ds_list_delete(l_chars, --cursor1.pos);
+				}
+				self.update_cursor(cursor1, true);
+				self.update_cursor(cursor2, true);
+			}
+		}
+		
+		draw_set_font(prevfont);
 	}
 	
 	static copy_cursor_info = function(from, to) {
@@ -92,9 +137,7 @@ function gmtf(style_struct=undefined) constructor {
 		to.cxs = from.cxs;
 	}
 	
-	static fit_lines = function(cposfrom=cursor1.pos, update_chw=false) {
-	
-		ds_list_clear(l_lines);
+	static fit_lines = function(cposfrom1=cursor1.pos, cposfrom2=cursor2.pos) {
 		
 		var li = 0;
 		var wid = 0;
@@ -105,16 +148,15 @@ function gmtf(style_struct=undefined) constructor {
 		var chw = 0;
 		var fit_ok = true;
 		
+		ds_list_clear(l_lines);
 		l_lines[| li] = [li, pos, pos, ""];
 		var line = l_lines[| li];
 		
 		for(var i = 0; i < ds_list_size(l_chars); i++) {
-			
 			char = l_chars[| i];
 			ch = char[0];
 			chw = char[1];
-			
-			if update_chw char[1] = string_width(ch);
+
 			wid += chw;
 			
 			var nl = wid >= pad_w;
@@ -122,7 +164,8 @@ function gmtf(style_struct=undefined) constructor {
 			if nl {
 				ds_list_insert(l_chars, i++, [chr_nl, 0]);
 				line[2] = pos++;
-				if pos > cposfrom and pos <= cursor1.pos cursor1.pos++;
+				if pos > cposfrom1 and pos <= cursor1.pos cursor1.pos++;
+				if pos > cposfrom2 and pos <= cursor2.pos cursor2.pos++;
 				//line[3] += chr_nl;
 			}
 			else if ch == chr_nl {
@@ -384,6 +427,19 @@ function gmtf(style_struct=undefined) constructor {
 				cursor_visible = true;
 			}
 			
+			double_clicked = false;
+			click_tick = max(0, click_tick - 1);
+			if mouse_check_button_released(mb_left) {
+				if click_tick > 0 and last_click_pos == cursor1.pos {
+					double_clicked = true;
+					click_tick = 0;
+				}
+				else {
+					click_tick = gamespd * 0.5;
+					last_click_pos = cursor1.pos;
+				}
+			}
+			
 			if ++cursor_tick >= gamespd * 0.5 {
 				cursor_tick = 0;
 				cursor_visible = !cursor_visible;
@@ -400,6 +456,15 @@ function gmtf(style_struct=undefined) constructor {
 					spam_time = gamespd * 0.03;
 					spam_now = true;
 				}
+			}
+			
+			if double_clicked {
+				var s = ds_list_size(l_chars)-1;
+				var stop = " .()[]{}|+-*/=";
+				while(cursor1.pos++ < s) if string_pos(l_chars[| cursor1.pos][0], stop) break;
+				while(cursor2.pos-- > 0) if string_pos(l_chars[| cursor2.pos][0], stop) { cursor2.pos++; break; };
+				self.update_cursor(cursor1, true);
+				self.update_cursor(cursor2);
 			}
 		
 			if keyboard_check_released(vk_anykey) {
@@ -450,6 +515,13 @@ function gmtf(style_struct=undefined) constructor {
 					else if keyboard_check_pressed(ord("X")) and cursor1.pos != cursor2.pos {
 						keyboard_string = "";
 						self.cut();
+					}
+					else if keyboard_check_pressed(ord("A")) {
+						keyboard_string = "";
+						cursor2.pos = 0;
+						cursor1.pos = ds_list_size(l_chars);
+						self.update_cursor(cursor1, true);
+						self.update_cursor(cursor2);
 					}
 				}
 			

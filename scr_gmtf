@@ -8,9 +8,9 @@ function gmib(style_struct=undefined) constructor {
 	chr_nl = chr(GMIB.CHR_NL);
 	
 	style = {
-		w: 256, 
-		h: 110, 
-		lh: 24, 
+		w: 256, // box width
+		h: 110, // box height
+		lh: 24, // line height
 		text: "", 
 		font: -1, 
 		padding: { top: 4, bottom: 4, left: 4, right: 4 },

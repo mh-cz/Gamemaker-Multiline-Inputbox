@@ -1,4 +1,4 @@
-# Gamemaker Multiline Text Field
+# Gamemaker Multiline Text Field (input box)
 An upgraded version of https://github.com/mh-cz/GameMaker-InputBox  
   
 ### Can do:

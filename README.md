@@ -1,5 +1,5 @@
 # Gamemaker Multiline InputBox
-An upgraded version of https://github.com/mh-cz/GameMaker-InputBox  
+An upgraded and more capable version of https://github.com/mh-cz/GameMaker-InputBox  
   
 ### Can do:
 ```Ctrl + C``` - copy  
@@ -16,25 +16,25 @@ An upgraded version of https://github.com/mh-cz/GameMaker-InputBox
 ```LMB double click``` - select word  
   
 ### Creating
-```<text_field> = new gmtf(style_struct=undefined)```  
+```<ib> = new gmib(style_struct=undefined)```  
 Basic:  
-```tf1 = new gmtf();```  
+```ib1 = new gmib();```  
 Using a struct to define style:  
-```tf1 = new gmtf({ w: 450, h: 90, text: "Hi there", c_text_unfocused: { c: white, a: 1 } });```  
+```ib1 = new gmib({ w: 450, h: 90, text: "Hi there", c_text_unfocused: { c: white, a: 1 } });```  
 Focus right away:  
-```tf1 = new gmtf().focus();```  
+```ib1 = new gmib().focus();```  
 
 ### Drawing
-```<text_field>.draw(x, y, gui_ev=true)```  
-In Draw GUI event:  
-```tf1.draw(50, 60);```  
-In a Draw event  
-```tf1.draw(50, 60, false);```  
+```<ib>.draw(x, y, gui_ev=true)```  
+Draw GUI event:  
+```ib1.draw(50, 60);```  
+Draw event  
+```ib1.draw(50, 60, false);```  
   
 ### Focus
 There can be just one focused text field  
 A tf focuses when you click inside of it  
-It's also possible to force focus tf using ```<text_field>.focus()```  
+It's also possible to force focus tf using ```<ib>.focus()```  
   
 ### Style variables
 ```w``` - (real) text field width, default: ```300```  
@@ -58,20 +58,20 @@ Style can be changed later by calling ```tf1.set_style(<style_struct>)```
 **WARNING:** Do not run style changes (except colors) every step since it has to update every single character and line which will cause lag  
  
 ### Text field switching
-```tf1.set_next(tf2);```  
-```tf2.set_next(tf3);```  
-```tf3.set_next(tf1);```  
-```tf1.set_previous(tf3);```  
-```tf3.set_previous(tf2);```  
-```tf2.set_previous(tf1);```  
+```ib1.set_next(ib2);```  
+```ib2.set_next(ib3);```  
+```ib3.set_next(ib1);```  
+```ib1.set_previous(ib3);```  
+```ib3.set_previous(ib2);```  
+```ib2.set_previous(ib1);```  
   
-After these are set you can switch text fields using Tab (next) and Shift+Tab (previous)  
+After these are set you can switch inputboxes using Tab (next) and Shift+Tab (previous)  
   
 ### Get/Set text
-```<text_field>.get_text(keep_enters=false);```  
+```<ib>.get_text(keep_enters=false);```  
 keep_enters:  
 false (default): replace enter characters chr(29) with regular ```\n``` characters  
-true: keep original enter characters chr(29), useful when copying between text fields  
+true: keep original enter characters chr(29), useful when copying between inputboxes  
   
-```<text_field>.set_text(text);```  
+```<ib>.set_text(text);```  
 Replace whatever is inside with a new text  

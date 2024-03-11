@@ -1,11 +1,11 @@
-global.GMTF_DATA = { active: undefined, switch_tick: 0 }
-enum GMTF { DEFAULT=0, TO_LOWER=1, TO_UPPER=2, CHR_END=28, CHR_ENTER=29, CHR_NL=30 }
+global.GMIB_DATA = { active: undefined, switch_tick: 0 }
+enum GMIB { DEFAULT=0, TO_LOWER=1, TO_UPPER=2, CHR_END=28, CHR_ENTER=29, CHR_NL=30 }
 
-function gmtf(style_struct=undefined) constructor {
+function gmib(style_struct=undefined) constructor {
 	
-	chr_end = chr(GMTF.CHR_END);
-	chr_enter = chr(GMTF.CHR_ENTER);
-	chr_nl = chr(GMTF.CHR_NL);
+	chr_end = chr(GMIB.CHR_END);
+	chr_enter = chr(GMIB.CHR_ENTER);
+	chr_nl = chr(GMIB.CHR_NL);
 	
 	style = {
 		w: 256, 
@@ -20,7 +20,7 @@ function gmtf(style_struct=undefined) constructor {
 		c_text_focused:		{ c: c_black, a: 1 },
 		c_selection:		{ c: c_blue, a: 0.275 },
 		char_limit: infinity,
-		letter_case: GMTF.DEFAULT,
+		letter_case: GMIB.DEFAULT,
 		min_chw: 0,
 		stoppers: " .,()[]{}<>?|:\\+-*/=" + chr_enter,
 	}
@@ -56,27 +56,27 @@ function gmtf(style_struct=undefined) constructor {
 	double_clicked = false;
 	last_click_pos = 0;
 	
-	next_tf = undefined;
-	previous_tf = undefined;
+	next_ib = undefined;
+	previous_ib = undefined;
 	switch_to = undefined;
 	
 	self.update_style(style_struct);
 	
-	static set_next = function(text_field) {
-		next_tf = text_field;
+	static set_next = function(ib) {
+		next_ib = ib;
 	}
 	
-	static set_previous = function(text_field) {
-		previous_tf = text_field;
+	static set_previous = function(ib) {
+		previous_ib = ib;
 	}
 	
 	static focus = function() {
-		global.GMTF_DATA.active = self;
+		global.GMIB_DATA.active = self;
 		return self;
 	}
 	
 	static unfocus = function() {
-		global.GMTF_DATA.active = undefined;
+		global.GMIB_DATA.active = undefined;
 	}
 	
 	static update_style = function(style_struct=undefined, update_lines=false, update_chars=false) {
@@ -118,8 +118,8 @@ function gmtf(style_struct=undefined) constructor {
 			for(var i = 0, s = ds_list_size(l_chars); i < s; i++) {
 				var ch = l_chars[| i][0];
 				if !(ch == chr_enter or ch == chr_end or ch == chr_nl) {
-					if style.letter_case == GMTF.TO_LOWER ch = string_lower(ch);
-					else if style.letter_case == GMTF.TO_UPPER ch = string_upper(ch);
+					if style.letter_case == GMIB.TO_LOWER ch = string_lower(ch);
+					else if style.letter_case == GMIB.TO_UPPER ch = string_upper(ch);
 					l_chars[| i][0] = ch;
 					l_chars[| i][1] = max(string_width(ch), style.min_chw);
 				}
@@ -212,8 +212,8 @@ function gmtf(style_struct=undefined) constructor {
 		
 		txt = string_replace_all(txt, chr(9), "");
 		
-		if style.letter_case == GMTF.TO_LOWER txt = string_lower(txt);
-		else if style.letter_case == GMTF.TO_UPPER txt = string_upper(txt);
+		if style.letter_case == GMIB.TO_LOWER txt = string_lower(txt);
+		else if style.letter_case == GMIB.TO_UPPER txt = string_upper(txt);
 		
 		var prevfont = draw_get_font();
 		draw_set_font(style.font);
@@ -463,11 +463,11 @@ function gmtf(style_struct=undefined) constructor {
 		mx = gui_ev ? device_mouse_x_to_gui(0) : mouse_x;
 		my = gui_ev ? device_mouse_y_to_gui(0) : mouse_y;
 		
-		has_focus = global.GMTF_DATA.active == self;
+		has_focus = global.GMIB_DATA.active == self;
 		
 		if !has_focus clear = false;
 		else {
-			global.GMTF_DATA.switch_tick = max(0, --global.GMTF_DATA.switch_tick);
+			global.GMIB_DATA.switch_tick = max(0, --global.GMIB_DATA.switch_tick);
 			
 			if !clear {
 				clear = true;
@@ -538,17 +538,17 @@ function gmtf(style_struct=undefined) constructor {
 						break;
 					case vk_tab:
 						keyboard_string = "";
-						if global.GMTF_DATA.switch_tick == 0 {
+						if global.GMIB_DATA.switch_tick == 0 {
 							if keyboard_check(vk_shift) {
-								if !is_undefined(previous_tf) {
-									previous_tf.focus();
-									global.GMTF_DATA.switch_tick = 2;
+								if !is_undefined(previous_ib) {
+									previous_ib.focus();
+									global.GMIB_DATA.switch_tick = 2;
 								}
 							}
 							else {
-								if !is_undefined(next_tf) {
-									next_tf.focus();
-									global.GMTF_DATA.switch_tick = 2;
+								if !is_undefined(next_ib) {
+									next_ib.focus();
+									global.GMIB_DATA.switch_tick = 2;
 								}
 							}
 						}

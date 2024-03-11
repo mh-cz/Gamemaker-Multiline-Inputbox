@@ -32,9 +32,9 @@ Draw event
 ```ib1.draw(50, 60, false);```  
   
 ### Focus
-There can be just one focused text field  
-A tf focuses when you click inside of it  
-It's also possible to force focus tf using ```<ib>.focus()```  
+There can be just one focused inputbox  
+An inputbox focuses when you click inside  
+It's also possible to force focus ib using ```<ib>.focus()```  
   
 ### Style variables
 ```w``` - (real) text field width, default: ```300```  

@@ -7,8 +7,8 @@ An upgraded and more capable version of https://github.com/mh-cz/GameMaker-Input
 ```Ctrl + X``` - cut  
 ```Ctrl + A``` - select all  
 ```Ctrl + Left/Right``` - skip words  
-```Tab``` - switch to next text field  
-```Shift + Tab``` - switch to previous text field  
+```Tab``` - switch to next inputbox  
+```Shift + Tab``` - switch to previous inputbox  
 ```Left/Right/Up/Down``` - move cursor  
 ```Shift + Left/Right/Up/Down``` - select text  
 ```LMB click``` - move cursor  
